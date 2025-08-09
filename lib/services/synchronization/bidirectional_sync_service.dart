@@ -20,10 +20,10 @@ class BidirectionalSyncService {
   Stream<SyncEvent> get syncStream => _syncController.stream;
   
   bool _isSyncing = false;
-  WidgetRef? _ref;
+  Ref? _ref;
   
   void initialize(Ref ref) {
-    _ref = ref as WidgetRef?;
+    _ref = ref;
   }
 
   /// Sync from UI changes to all other components

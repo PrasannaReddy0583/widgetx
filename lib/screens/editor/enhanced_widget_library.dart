@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/widget_model.dart';
 import '../../providers/widget_library_provider.dart';
-import '../../widgets/drag_drop_system.dart';
+import '../../widgets/canvas/enhanced_drag_drop_system.dart';
 import '../../core/constants/widget_types.dart';
 
 /// Enhanced widget library panel with categories and search
@@ -135,14 +135,17 @@ class _EnhancedWidgetLibraryState extends ConsumerState<EnhancedWidgetLibrary> {
   }
 
   Widget _buildWidgetGrid(List<WidgetDefinition> widgets) {
-    final filteredWidgets = widgets.where((widget) {
+    // Use the widget library definitions directly
+    final allWidgets = ref.read(widgetLibraryProvider.notifier).allWidgets;
+    
+    final filteredWidgets = allWidgets.where((widget) {
       final matchesSearch =
           _searchQuery.isEmpty ||
           widget.name.toLowerCase().contains(_searchQuery) ||
           widget.description.toLowerCase().contains(_searchQuery);
 
       final matchesCategory =
-          _selectedCategory == 'All' || widget.category == _selectedCategory;
+          _selectedCategory == 'All' || widget.type.category.displayName == _selectedCategory;
 
       return matchesSearch && matchesCategory;
     }).toList();
@@ -186,20 +189,14 @@ class _EnhancedWidgetLibraryState extends ConsumerState<EnhancedWidgetLibrary> {
   }
 
   Widget _buildWidgetCard(WidgetDefinition widgetDef) {
-    final widgetLibraryNotifier = ref.read(widgetLibraryProvider.notifier);
-    final newWidget = widgetLibraryNotifier.createWidgetFromDefinition(
-      widgetDef,
-      Offset.zero,
-    );
-
     return DraggableWidgetItem(
-      widget: newWidget,
+      definition: widgetDef,
       child: Card(
         elevation: 2,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: InkWell(
           borderRadius: BorderRadius.circular(12),
-          onTap: () => _onWidgetTap(newWidget),
+          onTap: () => _onWidgetTap(widgetDef),
           child: Container(
             padding: const EdgeInsets.all(12),
             child: Column(
@@ -245,11 +242,11 @@ class _EnhancedWidgetLibraryState extends ConsumerState<EnhancedWidgetLibrary> {
     );
   }
 
-  void _onWidgetTap(WidgetModel widget) {
+  void _onWidgetTap(WidgetDefinition widgetDef) {
     // Show tooltip or quick info about the widget
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Drag ${widget.type.displayName} to canvas to add it'),
+        content: Text('Drag ${widgetDef.name} to canvas to add it'),
         duration: const Duration(seconds: 2),
         behavior: SnackBarBehavior.floating,
       ),

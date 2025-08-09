@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../widgets/canvas/enhanced_drag_drop_system.dart';
 import '../../widgets/canvas/flutter_widget_renderer.dart';
 import '../../models/widget_model.dart';
+import '../../models/screen_model.dart';
 import '../../providers/canvas_provider.dart';
 import '../../providers/properties_provider.dart';
 import '../../services/synchronization/bidirectional_sync_service.dart';
@@ -24,9 +25,32 @@ class _EnhancedCanvasPanelState extends ConsumerState<EnhancedCanvasPanel> {
   final TransformationController _transformationController = TransformationController();
 
   @override
+  void initState() {
+    super.initState();
+    // Initialize with a default screen if none exists
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initializeDefaultScreen();
+    });
+  }
+
+  @override
   void dispose() {
     _transformationController.dispose();
     super.dispose();
+  }
+
+  void _initializeDefaultScreen() {
+    final canvasState = ref.read(canvasProvider);
+    if (canvasState.currentScreen == null) {
+      final canvasNotifier = ref.read(canvasProvider.notifier);
+      canvasNotifier.setCurrentScreen(
+        ScreenModel(
+          id: 'default',
+          name: 'Main Screen',
+          widgets: [],
+        ),
+      );
+    }
   }
 
   @override
@@ -600,18 +624,20 @@ class GridPainter extends CustomPainter {
       ..strokeWidth = 0.5;
 
     // Draw vertical lines
-    for (double x = 0; x <= size.width; x += gridSize) {
+    for (double x = gridSize; x < size.width; x += gridSize) {
       canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
     }
 
     // Draw horizontal lines
-    for (double y = 0; y <= size.height; y += gridSize) {
+    for (double y = gridSize; y < size.height; y += gridSize) {
       canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
     }
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(GridPainter oldDelegate) {
+    return oldDelegate.gridSize != gridSize || oldDelegate.gridColor != gridColor;
+  }
 }
 
 /// Ruler painter for canvas rulers
@@ -626,57 +652,48 @@ class RulerPainter extends CustomPainter {
       ..color = Colors.grey[600]!
       ..strokeWidth = 1;
 
-    const tickSpacing = 10.0;
-    const majorTickSpacing = 50.0;
+    final textPainter = TextPainter(
+      textDirection: TextDirection.ltr,
+    );
 
     if (isHorizontal) {
       // Draw horizontal ruler
-      for (double x = 0; x <= size.width; x += tickSpacing) {
-        final isMajorTick = x % majorTickSpacing == 0;
-        final tickHeight = isMajorTick ? 8.0 : 4.0;
-        
+      for (int i = 0; i < size.width; i += 50) {
+        final x = i.toDouble();
         canvas.drawLine(
-          Offset(x, size.height - tickHeight),
-          Offset(x, size.height),
+          Offset(x, size.height - 10), 
+          Offset(x, size.height), 
           paint,
         );
 
-        if (isMajorTick && x > 0) {
-          final textPainter = TextPainter(
-            text: TextSpan(
-              text: x.toInt().toString(),
-              style: TextStyle(color: Colors.grey[600], fontSize: 10),
-            ),
-            textDirection: TextDirection.ltr,
+        if (i > 0) {
+          textPainter.text = TextSpan(
+            text: i.toString(),
+            style: const TextStyle(fontSize: 10, color: Colors.grey),
           );
           textPainter.layout();
-          textPainter.paint(canvas, Offset(x - textPainter.width / 2, 2));
+          textPainter.paint(canvas, Offset(x + 2, size.height - 20));
         }
       }
     } else {
       // Draw vertical ruler
-      for (double y = 0; y <= size.height; y += tickSpacing) {
-        final isMajorTick = y % majorTickSpacing == 0;
-        final tickWidth = isMajorTick ? 8.0 : 4.0;
-        
+      for (int i = 0; i < size.height; i += 50) {
+        final y = i.toDouble();
         canvas.drawLine(
-          Offset(size.width - tickWidth, y),
-          Offset(size.width, y),
+          Offset(size.width - 10, y), 
+          Offset(size.width, y), 
           paint,
         );
 
-        if (isMajorTick && y > 0) {
-          final textPainter = TextPainter(
-            text: TextSpan(
-              text: y.toInt().toString(),
-              style: TextStyle(color: Colors.grey[600], fontSize: 10),
-            ),
-            textDirection: TextDirection.ltr,
+        if (i > 0) {
+          textPainter.text = TextSpan(
+            text: i.toString(),
+            style: const TextStyle(fontSize: 10, color: Colors.grey),
           );
           textPainter.layout();
           canvas.save();
-          canvas.translate(2, y + textPainter.width / 2);
-          canvas.rotate(-1.5708); // -90 degrees
+          canvas.translate(size.width - 25, y + textPainter.height / 2);
+          canvas.rotate(-3.14159 / 2);
           textPainter.paint(canvas, Offset.zero);
           canvas.restore();
         }
@@ -685,5 +702,7 @@ class RulerPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(RulerPainter oldDelegate) {
+    return oldDelegate.isHorizontal != isHorizontal;
+  }
 }

@@ -4,6 +4,7 @@ import '../../models/widget_model.dart';
 import '../../core/constants/widget_types.dart';
 import '../../providers/canvas_provider.dart';
 import '../../providers/properties_provider.dart';
+import '../../providers/widget_library_provider.dart';
 import 'flutter_widget_renderer.dart';
 
 /// Enhanced drag and drop system with proper Flutter widget hierarchy
@@ -203,24 +204,6 @@ class _EnhancedDragDropSystemState extends ConsumerState<EnhancedDragDropSystem>
   }
 }
 
-/// Widget definition for drag and drop
-class WidgetDefinition {
-  final FlutterWidgetType type;
-  final String name;
-  final String description;
-  final IconData icon;
-  final List<String> tags;
-  final Widget? previewWidget;
-
-  const WidgetDefinition({
-    required this.type,
-    required this.name,
-    required this.description,
-    required this.icon,
-    this.tags = const [],
-    this.previewWidget,
-  });
-}
 
 /// Canvas widget that renders the widget tree
 class CanvasRenderer extends ConsumerWidget {
@@ -410,98 +393,3 @@ class DraggableWidgetItem extends StatelessWidget {
   }
 }
 
-/// Widget library with predefined widgets
-class WidgetLibraryDefinitions {
-  static const List<WidgetDefinition> allWidgets = [
-    // Layout Widgets
-    WidgetDefinition(
-      type: FlutterWidgetType.container,
-      name: 'Container',
-      description: 'A convenience widget that combines common painting, positioning, and sizing widgets',
-      icon: Icons.crop_square,
-      tags: ['layout', 'basic'],
-    ),
-    WidgetDefinition(
-      type: FlutterWidgetType.row,
-      name: 'Row',
-      description: 'A widget that displays its children in a horizontal array',
-      icon: Icons.view_week,
-      tags: ['layout', 'flex'],
-    ),
-    WidgetDefinition(
-      type: FlutterWidgetType.column,
-      name: 'Column',
-      description: 'A widget that displays its children in a vertical array',
-      icon: Icons.view_agenda,
-      tags: ['layout', 'flex'],
-    ),
-    WidgetDefinition(
-      type: FlutterWidgetType.stack,
-      name: 'Stack',
-      description: 'A widget that positions its children relative to the edges of its box',
-      icon: Icons.layers,
-      tags: ['layout', 'positioning'],
-    ),
-    
-    // Display Widgets
-    WidgetDefinition(
-      type: FlutterWidgetType.text,
-      name: 'Text',
-      description: 'A run of text with a single style',
-      icon: Icons.text_fields,
-      tags: ['display', 'basic'],
-    ),
-    WidgetDefinition(
-      type: FlutterWidgetType.image,
-      name: 'Image',
-      description: 'A widget that displays an image',
-      icon: Icons.image,
-      tags: ['display', 'media'],
-    ),
-    WidgetDefinition(
-      type: FlutterWidgetType.icon,
-      name: 'Icon',
-      description: 'A graphical icon widget drawn with a glyph from a font',
-      icon: Icons.star,
-      tags: ['display', 'basic'],
-    ),
-    
-    // Input Widgets
-    WidgetDefinition(
-      type: FlutterWidgetType.elevatedButton,
-      name: 'Elevated Button',
-      description: 'A Material Design elevated button',
-      icon: Icons.smart_button,
-      tags: ['input', 'material'],
-    ),
-    WidgetDefinition(
-      type: FlutterWidgetType.textField,
-      name: 'Text Field',
-      description: 'A Material Design text field',
-      icon: Icons.text_snippet,
-      tags: ['input', 'form'],
-    ),
-    
-    // Scrolling Widgets
-    WidgetDefinition(
-      type: FlutterWidgetType.listView,
-      name: 'List View',
-      description: 'A scrollable, linear list of widgets',
-      icon: Icons.list,
-      tags: ['scrolling', 'list'],
-    ),
-  ];
-  
-  static List<WidgetDefinition> getByCategory(WidgetCategory category) {
-    return allWidgets.where((w) => w.type.category == category).toList();
-  }
-  
-  static List<WidgetDefinition> search(String query) {
-    final lowerQuery = query.toLowerCase();
-    return allWidgets.where((w) {
-      return w.name.toLowerCase().contains(lowerQuery) ||
-             w.description.toLowerCase().contains(lowerQuery) ||
-             w.tags.any((tag) => tag.toLowerCase().contains(lowerQuery));
-    }).toList();
-  }
-}

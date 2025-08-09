@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'enhanced_widget_library.dart';
-import 'enhanced_canvas_panel.dart';
+import 'enhanced_canvas_panel_new.dart';
 import 'enhanced_properties_panel.dart';
 import 'widget_tree_panel.dart';
 import '../../providers/canvas_provider.dart';
@@ -31,8 +31,8 @@ class _EnhancedEditorScreenState extends ConsumerState<EnhancedEditorScreen> {
           // Widget Library Panel
           if (_showWidgetLibrary) const EnhancedWidgetLibrary(),
 
-          // Main Canvas Area
-          const EnhancedCanvasPanel(),
+          // Main Canvas Area  
+          const Expanded(child: EnhancedCanvasPanel()),
 
           // Right Side Panels
           if (_showWidgetTree || _showProperties)
